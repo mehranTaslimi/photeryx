@@ -641,6 +641,7 @@ dependencies = [
  "anyhow",
  "dashmap",
  "image",
+ "once_cell",
  "wasm-bindgen",
  "wasm-bindgen-futures",
 ]
