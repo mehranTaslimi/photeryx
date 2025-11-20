@@ -3,7 +3,7 @@
 > A small, fast Rust + WebAssembly image processor for the browser.
 
 <p align="center">
-  <img src="./docs/logo.png" alt="Photeryx logo" width="140" />
+  <img src="./docs/logo-small.png" alt="Photeryx logo" width="140" />
 </p>
 
 Photeryx lets you load an image in the browser, apply basic transformations in Rust,
