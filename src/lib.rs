@@ -3,7 +3,7 @@ use wasm_bindgen::prelude::*;
 pub mod document;
 pub mod metadata;
 pub mod ops;
-pub mod pipeline;
+pub mod process;
 
 pub use document::PhoteryxDocument;
 

@@ -5,14 +5,14 @@ use wasm_bindgen::prelude::*;
 
 use crate::{
     metadata::Metadata,
-    ops::{DOCUMENTS, ID, Operation},
-    pipeline,
+    ops::{DOCUMENTS, ID, config::ImageConfig},
+    process,
 };
 
 pub struct ImageDocument {
     pub image: DynamicImage,
     pub metadata: Metadata,
-    pub ops: Vec<Operation>,
+    pub config: ImageConfig,
 }
 
 #[wasm_bindgen]
@@ -23,11 +23,14 @@ pub struct PhoteryxDocument {
 #[wasm_bindgen]
 impl PhoteryxDocument {
     #[wasm_bindgen(constructor)]
-    pub fn new(input: &[u8]) -> Result<Self, JsValue> {
+    pub fn new(input: &[u8], config: &JsValue) -> Result<Self, JsValue> {
         let image =
             image::load_from_memory(input).map_err(|err| JsValue::from_str(&format!("{}", err)))?;
 
         let (width, height) = image.dimensions();
+
+        let image_config = serde_wasm_bindgen::from_value::<ImageConfig>(config.clone())
+            .map_err(|err| JsValue::from_str(&format!("{}", err)))?;
 
         let metadata = Metadata {
             width,
@@ -37,10 +40,11 @@ impl PhoteryxDocument {
         };
 
         let id = ID.fetch_add(1, Ordering::Relaxed);
+
         let image = ImageDocument {
             image,
             metadata,
-            ops: vec![],
+            config: image_config,
         };
 
         DOCUMENTS.insert(id, image);
@@ -48,22 +52,12 @@ impl PhoteryxDocument {
         Ok(Self { id })
     }
 
-    pub fn rotate(&self, degrees: u16) -> Result<(), JsValue> {
-        let mut document = DOCUMENTS
-            .get_mut(&self.id)
-            .ok_or(JsValue::from_str("not found"))?;
-
-        document.ops.push(Operation::Rotate(degrees));
-
-        Ok(())
-    }
-
-    pub fn render(&self) -> Result<Vec<u8>, JsValue> {
+    pub fn process(&self) -> Result<Vec<u8>, JsValue> {
         let document = DOCUMENTS
             .get(&self.id)
             .ok_or(JsValue::from_str("not found"))?;
 
-        let img = pipeline::apply_ops(&document.image, &document.ops)
+        let img = process::apply_process(&document.image, &document.config)
             .map_err(|err| JsValue::from_str(&format!("{}", err)))?;
 
         let mut buf = Cursor::new(Vec::new());
