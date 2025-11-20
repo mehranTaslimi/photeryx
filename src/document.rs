@@ -4,9 +4,9 @@ use image::{DynamicImage, GenericImageView, ImageFormat};
 use wasm_bindgen::prelude::*;
 
 use crate::{
+    export, log,
     metadata::Metadata,
     ops::{DOCUMENTS, ID, config::ImageConfig},
-    process,
 };
 
 pub struct ImageDocument {
@@ -31,6 +31,8 @@ impl PhoteryxDocument {
 
         let image_config = serde_wasm_bindgen::from_value::<ImageConfig>(config.clone())
             .map_err(|err| JsValue::from_str(&format!("{}", err)))?;
+
+        log(&format!("Config {:?}", image_config));
 
         let metadata = Metadata {
             width,
@@ -57,7 +59,7 @@ impl PhoteryxDocument {
             .get(&self.id)
             .ok_or(JsValue::from_str("not found"))?;
 
-        let img = process::apply_process(&document.image, &document.config)
+        let img = export::apply_ops(&document.image, &document.config)
             .map_err(|err| JsValue::from_str(&format!("{}", err)))?;
 
         let mut buf = Cursor::new(Vec::new());

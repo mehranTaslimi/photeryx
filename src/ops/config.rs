@@ -7,11 +7,11 @@ pub struct ImageConfig {
     pub resize: Option<ResizeConfig>,
 
     #[serde(default)]
-    pub filters: FilterConfig,
+    pub filters: Option<FilterConfig>,
 
     pub background: Option<BackgroundConfig>,
     pub sharpen: Option<SharpenConfig>,
-    pub export: ExportConfig,
+    pub export: Option<ExportConfig>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -99,10 +99,9 @@ pub struct FilterConfig {
     #[serde(default)]
     pub invert: bool,
 
-    pub brightness: Option<f32>,
+    pub brightness: Option<i32>,
     pub contrast: Option<f32>,
-    pub saturation: Option<f32>,
-    pub blur_radius: Option<f32>,
+    pub blur: Option<f32>,
 }
 
 impl Default for FilterConfig {
@@ -112,8 +111,7 @@ impl Default for FilterConfig {
             invert: false,
             brightness: None,
             contrast: None,
-            saturation: None,
-            blur_radius: None,
+            blur: None,
         }
     }
 }

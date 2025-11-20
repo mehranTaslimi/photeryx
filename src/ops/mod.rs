@@ -1,29 +1,23 @@
 use dashmap::DashMap;
-use image::DynamicImage;
 use once_cell::sync::Lazy;
 use std::sync::atomic::AtomicU32;
 
 use crate::document::ImageDocument;
 
+mod blur;
+mod brightness;
 pub mod config;
-pub mod rotate;
+mod contrast;
+mod grayscale;
+mod invert;
+mod rotate;
+
+pub use blur::blur_op;
+pub use brightness::brightness_op;
+pub use contrast::contrast_op;
+pub use grayscale::grayscale_op;
+pub use invert::invert_op;
+pub use rotate::rotate_op;
 
 pub static ID: AtomicU32 = AtomicU32::new(0);
 pub static DOCUMENTS: Lazy<DashMap<u32, ImageDocument>> = Lazy::new(|| DashMap::new());
-
-#[derive(Debug)]
-pub struct Operation {
-    rotate: Option<u16>,
-    crop: Option<(u64, u64)>,
-}
-
-impl Operation {
-    pub fn apply(&self, image: DynamicImage) {
-        // match self {
-        // Operation::Rotate(degree) => {
-        //     log(&format!("Applying rotate operation: {} degrees", degree));
-        //     rotate::rotate_op(&image, degree)
-        // }
-        // }
-    }
-}

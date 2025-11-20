@@ -1,9 +1,9 @@
 use wasm_bindgen::prelude::*;
 
 pub mod document;
+pub mod export;
 pub mod metadata;
 pub mod ops;
-pub mod process;
 
 pub use document::PhoteryxDocument;
 
