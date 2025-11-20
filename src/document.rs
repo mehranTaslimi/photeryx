@@ -1,22 +1,23 @@
-use std::sync::atomic::Ordering;
+use std::{io::Cursor, sync::atomic::Ordering};
 
-use image::{DynamicImage, GenericImageView};
+use image::{DynamicImage, GenericImageView, ImageFormat};
 use wasm_bindgen::prelude::*;
 
 use crate::{
     metadata::Metadata,
     ops::{DOCUMENTS, ID, Operation},
+    pipeline,
 };
+
+pub struct ImageDocument {
+    pub image: DynamicImage,
+    pub metadata: Metadata,
+    pub ops: Vec<Operation>,
+}
 
 #[wasm_bindgen]
 pub struct PhoteryxDocument {
     id: u32,
-}
-
-pub struct ImageDocument {
-    image: DynamicImage,
-    metadata: Metadata,
-    ops: Vec<Operation>,
 }
 
 #[wasm_bindgen]
@@ -52,12 +53,26 @@ impl PhoteryxDocument {
             .get_mut(&self.id)
             .ok_or(JsValue::from_str("not found"))?;
 
-        document.ops.push(Operation::Rrotate(degrees));
+        document.ops.push(Operation::Rotate(degrees));
 
         Ok(())
     }
 
-    pub fn render() {}
+    pub fn render(&self) -> Result<Vec<u8>, JsValue> {
+        let document = DOCUMENTS
+            .get(&self.id)
+            .ok_or(JsValue::from_str("not found"))?;
+
+        let img = pipeline::apply_ops(&document.image, &document.ops)
+            .map_err(|err| JsValue::from_str(&format!("{}", err)))?;
+
+        let mut buf = Cursor::new(Vec::new());
+
+        img.write_to(&mut buf, ImageFormat::Png)
+            .map_err(|err| JsValue::from_str(&format!("{}", err)))?;
+
+        Ok(buf.into_inner())
+    }
 
     pub fn free(self) {
         DOCUMENTS.remove(&self.id);
