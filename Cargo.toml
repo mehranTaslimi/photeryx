@@ -1,0 +1,15 @@
+[package]
+name = "photeryx"
+version = "0.1.0"
+edition = "2024"
+license = "Apache-2.0"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+wasm-bindgen = "0.2"
+image = "0.25"
+anyhow = "1"
+wasm-bindgen-futures = "0.4.55"
+dashmap = "6.1"
