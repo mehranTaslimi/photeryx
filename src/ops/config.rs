@@ -94,10 +94,16 @@ pub struct FilterConfig {
     #[serde(default)]
     pub invert: bool,
 
-    pub sharpen: Option<f32>,
+    pub sharpen: Option<SharpenConfig>,
     pub brightness: Option<i32>,
     pub contrast: Option<f32>,
     pub blur: Option<f32>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SharpenConfig {
+    pub radius: f32,
+    pub threshold: i32,
 }
 
 impl Default for FilterConfig {

@@ -1,11 +1,9 @@
 use wasm_bindgen::prelude::*;
 
-pub mod document;
-pub mod export;
-pub mod metadata;
-pub mod ops;
+mod entry;
+mod ops;
 
-pub use document::PhoteryxDocument;
+pub use entry::load_image;
 
 #[wasm_bindgen]
 extern "C" {

@@ -1,10 +1,10 @@
-use image::DynamicImage;
-
 use crate::ops::{
-    blur_op, brightness_op, config::ImageConfig, contrast_op, grayscale_op, invert_op, rotate_op,
+    DOCUMENTS, blur_op, brightness_op, config::ImageConfig, contrast_op, export_op, grayscale_op,
+    invert_op, rotate_op, sharpen_op,
 };
 
-pub fn apply_ops(original: &DynamicImage, config: &ImageConfig) -> anyhow::Result<DynamicImage> {
+pub fn apply_ops(id: &u32, config: &ImageConfig) -> anyhow::Result<Vec<u8>> {
+    let original = DOCUMENTS.get(id).ok_or(anyhow::anyhow!("not found"))?;
     let mut image = original.clone();
 
     if let Some(rotation) = &config.rotation {
@@ -33,7 +33,10 @@ pub fn apply_ops(original: &DynamicImage, config: &ImageConfig) -> anyhow::Resul
         if let Some(contrast) = filter.contrast {
             image = contrast_op(&image, contrast);
         }
+        if let Some(sharpen) = &filter.sharpen {
+            image = sharpen_op(&image, sharpen.radius, sharpen.threshold);
+        }
     }
 
-    Ok(image)
+    export_op(&image, &config.export)
 }
