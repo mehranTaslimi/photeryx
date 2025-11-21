@@ -11,6 +11,12 @@ pub fn apply_ops(original: &DynamicImage, config: &ImageConfig) -> anyhow::Resul
         image = rotate_op(&image, rotation.degrees);
     }
 
+    if let Some(crop) = &config.crop
+        && crop.enabled
+    {
+        image = crate::ops::crop_op(&image, crop);
+    }
+
     if let Some(filter) = &config.filters {
         if filter.grayscale {
             image = grayscale_op(&image);

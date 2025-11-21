@@ -6,15 +6,18 @@ use crate::document::ImageDocument;
 
 mod blur;
 mod brightness;
-pub mod config;
 mod contrast;
+mod crop;
 mod grayscale;
 mod invert;
 mod rotate;
 
+pub mod config;
+
 pub use blur::blur_op;
 pub use brightness::brightness_op;
 pub use contrast::contrast_op;
+pub use crop::crop_op;
 pub use grayscale::grayscale_op;
 pub use invert::invert_op;
 pub use rotate::rotate_op;
