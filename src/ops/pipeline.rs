@@ -1,20 +1,22 @@
 use crate::ops::{
-    DOCUMENTS, blur_op, brightness_op, config::ImageConfig, contrast_op, export_op, grayscale_op,
-    invert_op, rotate_op, sharpen_op,
+    DOCUMENTS, blur_op, brightness_op, config::ImageConfig, contrast_op, crop_op, export_op,
+    grayscale_op, invert_op, resize_op, rotate_op, sharpen_op,
 };
 
 pub fn apply_ops(id: &u32, config: &ImageConfig) -> anyhow::Result<Vec<u8>> {
     let original = DOCUMENTS.get(id).ok_or(anyhow::anyhow!("not found"))?;
     let mut image = original.clone();
 
+    if let Some(resize) = &config.resize {
+        image = resize_op(&image, resize);
+    }
+
     if let Some(rotation) = &config.rotation {
         image = rotate_op(&image, rotation.degrees);
     }
 
-    if let Some(crop) = &config.crop
-        && crop.enabled
-    {
-        image = crate::ops::crop_op(&image, crop);
+    if let Some(crop) = &config.crop {
+        image = crop_op(&image, crop);
     }
 
     if let Some(filter) = &config.filters {

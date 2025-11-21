@@ -1,8 +1,5 @@
-use std::io::Cursor;
-
 use image::{DynamicImage, codecs::jpeg::JpegEncoder};
-
-use webp::Encoder as WebPEncoder;
+use std::io::Cursor;
 
 use crate::ops::config::{ExportConfig, ExportFormat};
 
@@ -11,7 +8,7 @@ pub fn export_op(image: &DynamicImage, config: &ExportConfig) -> anyhow::Result<
 
     match config.format {
         ExportFormat::Jpeg => export_jpeg(image, quality),
-        ExportFormat::Webp => export_webp(image, quality),
+        ExportFormat::Webp => export_webp(image),
         ExportFormat::Png => export_png(image),
     }
 }
@@ -27,13 +24,10 @@ fn export_jpeg(image: &DynamicImage, quality: u8) -> anyhow::Result<Vec<u8>> {
     Ok(buf.into_inner())
 }
 
-fn export_webp(image: &DynamicImage, quality: u8) -> anyhow::Result<Vec<u8>> {
-    let encoder = WebPEncoder::from_image(image)
-        .map_err(|e| anyhow::anyhow!("failed to build webp encoder: {e}"))?;
-
-    let webp = encoder.encode(quality as f32);
-
-    Ok(webp.to_vec())
+fn export_webp(image: &DynamicImage) -> anyhow::Result<Vec<u8>> {
+    let mut buf = Cursor::new(Vec::new());
+    image.write_to(&mut buf, image::ImageFormat::WebP)?;
+    Ok(buf.into_inner())
 }
 
 fn export_png(image: &DynamicImage) -> anyhow::Result<Vec<u8>> {

@@ -12,6 +12,7 @@ mod grayscale;
 mod invert;
 mod load;
 mod pipeline;
+mod resize;
 mod rotate;
 mod sharpen;
 
@@ -27,6 +28,7 @@ pub use crop::crop_op;
 pub use export::export_op;
 pub use grayscale::grayscale_op;
 pub use invert::invert_op;
+pub use resize::resize_op;
 pub use rotate::rotate_op;
 pub use sharpen::sharpen_op;
 

@@ -19,8 +19,6 @@ pub struct RotationConfig {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CropConfig {
-    #[serde(default)]
-    pub enabled: bool,
     // #[serde(default)]
     // pub mode: CropMode,
     pub x: u32,
