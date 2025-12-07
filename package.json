@@ -1,28 +1,42 @@
 {
   "name": "photeryx",
-  "type": "module",
   "version": "0.1.0",
+  "type": "module",
   "license": "Apache-2.0",
+  "description": "Fast Rust + WebAssembly image processing for the browser.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "files": [
-    "dist/index.js",
-    "dist/index.d.ts",
-    "dist/wasm/photeryx.js",
-    "dist/wasm/photeryx_bg.js",
-    "dist/wasm/photeryx_bg.wasm"
+    "dist"
   ],
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
   "scripts": {
     "clean": "rm -rf dist",
-    "build:js": "tsc",
+    "build:js": "tsc --build",
     "build:wasm": "cd wasm-src && wasm-pack build --release --target bundler --out-dir ../src/wasm",
-    "prepare:dist": "mkdir -p dist/wasm",
-    "copy:artifacts": "cp src/wasm/*.{wasm,js} dist/wasm",
-    "build": "npm run clean && npm run build:wasm && npm run build:js && npm run prepare:dist && npm run copy:artifacts",
-    "release": "npm run build && npm publish"
+    "build": "npm run clean && npm run build:wasm && npm run build:js && mkdir -p dist/wasm && cp src/wasm/*.{wasm,js} dist/wasm",
+    "prepublishOnly": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mehranTaslimi/photeryx.git"
+  },
+  "keywords": [
+    "rust",
+    "wasm",
+    "webassembly",
+    "image-processing",
+    "image-editor",
+    "browser",
+    "frontend",
+    "jpeg",
+    "webp"
+  ],
+  "author": "Mehran Taslimi",
+  "engines": {
+    "node": ">=20"
   },
   "devDependencies": {
-    "@types/node": "^24.10.1",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "@types/node": "^24.10.1"
   }
 }

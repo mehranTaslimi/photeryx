@@ -8,6 +8,7 @@ mod brightness;
 mod contrast;
 mod crop;
 mod export;
+mod free;
 mod grayscale;
 mod invert;
 mod load;
@@ -18,6 +19,7 @@ mod sharpen;
 
 pub mod config;
 
+pub use free::free_image;
 pub use load::load_image;
 pub use pipeline::apply_ops;
 

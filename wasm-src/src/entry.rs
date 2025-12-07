@@ -14,3 +14,8 @@ pub fn export_image(id: u32, config: &JsValue) -> Result<Vec<u8>, JsValue> {
 
     ops::apply_ops(&id, &image_config).map_err(|err| JsValue::from_str(&format!("{}", err)))
 }
+
+#[wasm_bindgen]
+pub fn free_image(id: u32) -> Result<(), JsValue> {
+    ops::free_image(&id).map_err(|err| JsValue::from_str(&format!("{}", err)))
+}
