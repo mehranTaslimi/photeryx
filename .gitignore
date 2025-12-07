@@ -1,2 +1,5 @@
-/target
-/pkg
+wasm-src/target
+dist
+node_modules
+target
+.DS_Store

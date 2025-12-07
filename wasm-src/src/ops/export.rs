@@ -15,12 +15,8 @@ pub fn export_op(image: &DynamicImage, config: &ExportConfig) -> anyhow::Result<
 
 fn export_jpeg(image: &DynamicImage, quality: u8) -> anyhow::Result<Vec<u8>> {
     let mut buf = Cursor::new(Vec::new());
-
-    {
-        let mut encoder = JpegEncoder::new_with_quality(&mut buf, quality);
-        encoder.encode_image(image)?;
-    }
-
+    let mut encoder = JpegEncoder::new_with_quality(&mut buf, quality);
+    encoder.encode_image(image)?;
     Ok(buf.into_inner())
 }
 
