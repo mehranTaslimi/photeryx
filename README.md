@@ -6,6 +6,13 @@
   <img src="./docs/logo-small.png" alt="Photeryx logo" width="140" />
 </p>
 
+[![npm version](https://img.shields.io/npm/v/photeryx?color=blue)](https://www.npmjs.com/package/photeryx)
+[![npm downloads](https://img.shields.io/npm/dm/photeryx)](https://www.npmjs.com/package/photeryx)
+[![license](https://img.shields.io/npm/l/photeryx)](https://github.com/mehranTaslimi/photeryx/blob/main/LICENSE)
+![GitHub issues](https://img.shields.io/github/issues/mehranTaslimi/photeryx)
+![Node version](https://img.shields.io/node/v/photeryx)
+![WebAssembly](https://img.shields.io/badge/wasm-supported-brightgreen)
+
 **Photeryx** is a fast **Rust + WebAssembly** image processing pipeline for the browser. It’s designed for **high-performance image manipulation** before upload or display, supporting rotation, crop, resize, filters, and multiple export formats.
 
 ---
