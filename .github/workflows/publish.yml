@@ -7,32 +7,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install Rust and wasm target
-        run: |
+      - run: |
+          # Install Rust
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
           source $HOME/.cargo/env
           rustup target add wasm32-unknown-unknown
+          cargo install wasm-pack
 
-      - name: Install wasm-pack and binaryen
-        run: |
-          curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
-          wget https://github.com/WebAssembly/binaryen/releases/download/version_116/binaryen-version_116-x86_64-linux.tar.gz
-          tar -xzf binaryen-version_116-x86_64-linux.tar.gz
-          sudo cp binaryen-version_116/bin/* /usr/local/bin/
+          # Install binaryen
+          sudo apt-get update && sudo apt-get install -y binaryen
 
-      - name: Setup Node.js and pnpm
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          registry-url: "https://registry.npmjs.org"
+          # Install Node.js and pnpm
+          curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+          sudo apt-get install -y nodejs
+          npm install -g pnpm
 
-      - run: npm install -g pnpm
-      - run: pnpm install
-      - run: pnpm run build
-
-      - name: Create tag and publish
-        run: |
+          # Build and publish
+          pnpm install
+          pnpm run build
           VERSION=$(node -p "require('./package.json').version")
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
