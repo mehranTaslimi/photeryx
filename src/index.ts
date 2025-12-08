@@ -1,13 +1,12 @@
 import { export_image, load_image, free_image } from "./wasm/photeryx.js";
 
 export interface ImageConfig {
-  rotation?: RotationConfig;
-  crop?: CropConfig;
-  resize?: ResizeConfig;
-  filters?: FilterConfig;
+  rotation?: RotationConfig | null;
+  crop?: CropConfig | null;
+  resize?: ResizeConfig | null;
+  filters?: FilterConfig | null;
   export: ExportConfig;
 }
-
 export interface RotationConfig {
   degrees: number;
 }
@@ -19,23 +18,32 @@ export interface CropConfig {
 }
 export interface ResizeConfig {
   max_width: number;
+  max_height: number;
+  mode: "fit" | "exact" | "fill";
 }
 export interface FilterConfig {
   grayscale?: boolean;
   invert?: boolean;
-  sharpen?: SharpenConfig;
-  brightness?: number;
-  contrast?: number;
-  blur?: number;
+  sharpen?: SharpenConfig | null;
+  brightness?: number | null;
+  contrast?: number | null;
+  blur?: number | null;
 }
 export interface SharpenConfig {
   radius: number;
   threshold: number;
 }
-export interface ExportConfig {
-  format: "jpeg" | "png" | "webp";
-  quality: number;
+
+export enum ExportFormat {
+  Jpeg = "jpeg",
+  Png = "png",
+  Webp = "webp",
 }
+
+export type ExportConfig =
+  | { format: "jpeg"; quality: number }
+  | { format: "png" }
+  | { format: "webp" };
 
 class Photeryx {
   #id: number | undefined;
