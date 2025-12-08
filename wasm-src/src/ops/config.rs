@@ -19,69 +19,25 @@ pub struct RotationConfig {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CropConfig {
-    // #[serde(default)]
-    // pub mode: CropMode,
     pub x: u32,
     pub y: u32,
     pub width: u32,
     pub height: u32,
-    // pub aspect_ratio: Option<f32>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub enum CropMode {
-    Rect,
-    CenterAspect,
-    Absolute,
-}
-
-impl Default for CropMode {
-    fn default() -> Self {
-        CropMode::Rect
-    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ResizeConfig {
-    pub max_width: Option<u32>,
-    // pub max_height: Option<u32>,
-
-    // #[serde(default)]
-    // pub mode: ResizeMode,
-
-    // #[serde(default)]
-    // pub filter: ResizeFilter,
+    pub max_width: u32,
+    pub max_height: u32,
+    pub mode: ResizeMode,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "lowercase")]
 pub enum ResizeMode {
     Fit,
-    Fill,
     Exact,
-}
-
-impl Default for ResizeMode {
-    fn default() -> Self {
-        ResizeMode::Fit
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub enum ResizeFilter {
-    Nearest,
-    Triangle,
-    CatmullRom,
-    Gaussian,
-    Lanczos3,
-}
-
-impl Default for ResizeFilter {
-    fn default() -> Self {
-        ResizeFilter::Lanczos3
-    }
+    Fill,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
