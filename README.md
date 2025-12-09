@@ -1,6 +1,6 @@
 # Photeryx
 
-> A small, fast Rust + WebAssembly image processor for the browser.
+> High-performance Rust + WebAssembly image processing for modern web applications.
 
 <p align="center">
   <img src="./docs/logo-small.png" alt="Photeryx logo" width="140" />
@@ -11,47 +11,51 @@
 [![license](https://img.shields.io/npm/l/photeryx)](https://github.com/mehranTaslimi/photeryx/blob/main/LICENSE)
 ![GitHub issues](https://img.shields.io/github/issues/mehranTaslimi/photeryx)
 ![Node version](https://img.shields.io/node/v/photeryx)
-![WebAssembly](https://img.shields.io/badge/wasm-supported-brightgreen)
-
-**Photeryx** is a fast **Rust + WebAssembly** image processing pipeline for the browser. It’s designed for **high-performance image manipulation** before upload or display, supporting rotation, crop, resize, filters, and multiple export formats.
+![WebAssembly](https://img.shields.io/badge/WebAssembly-Ready-purple)
 
 ---
 
-## Features
+## 🚀 Overview
 
-- 🦀 Rust core compiled to WebAssembly
-- 🖼 Load images from `File`, `URL`, or `ArrayBuffer`
-- 🔁 Rotate (0 / 90 / 180 / 270)
-- ✂️ Crop (rect-based)
-- 📏 Resize (max width, aspect-ratio safe)
-- 🎨 Filters:
+**Photeryx** is a fast, lightweight image processing pipeline powered by **Rust + WebAssembly**, designed for browsers and modern frontend apps. It supports loading multiple images, transforming them, and exporting them in various formats, all locally without backend services.
 
-  - Grayscale
-  - Invert
-  - Brighten
-  - Contrast
-  - Blur
-  - Sharpen (with radius and threshold)
+This makes it ideal for:
 
-- 📤 Export images as:
-
-  - `Uint8Array` (`exportAsBytes`)
-  - `Blob` (`exportAsBlob`)
-  - `File` (`exportAsFile`)
-  - Base64 `data:` URL (`exportAsDataUrl`)
-
-- Supports **JPEG**, **PNG**, and **WebP**
-- Built for modern frontend applications with **TypeScript + WASM**
+- Image editors
+- Upload preprocessors
+- Offline-first web apps
+- High-performance React / Vue / Svelte applications
 
 ---
 
-## Status
+## ✨ Core Features
 
-This library is experimental and under active development. APIs may change until the first stable release.
+- Written in **Rust**, compiled to **WebAssembly**
+- Manage multiple images in memory at once
+- Load images from:
+  - `File`
+  - `URL`
+  - `ArrayBuffer`
+- Transformations:
+  - **Rotate**
+  - **Crop**
+  - **Resize**
+  - **Filters** (brightness, contrast, blur, sharpen, etc.)
+- Export formats:
+  - `JPEG`
+  - `PNG`
+  - `WebP`
+- Export as:
+  - `Uint8Array`
+  - `Blob`
+  - `File`
+  - Base64 `data:` URL
+- Manual memory control: free images when you’re done
+- Zero network dependency
 
 ---
 
-## Installation
+## 📦 Installation
 
 ```bash
 npm install photeryx
@@ -59,91 +63,171 @@ npm install photeryx
 
 ---
 
-## Usage
+## 🧱 TypeScript API Overview
+
+### Image Configuration
+
+```ts
+export interface RotationConfig {
+  degrees: number;
+}
+
+export interface CropConfig {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export interface ResizeConfig {
+  max_width: number;
+  max_height: number;
+  mode: "fit" | "exact" | "fill";
+}
+
+export interface SharpenConfig {
+  radius: number;
+  threshold: number;
+}
+
+export interface FilterConfig {
+  grayscale?: boolean;
+  invert?: boolean;
+  sharpen?: SharpenConfig | null;
+  brightness?: number | null;
+  contrast?: number | null;
+  blur?: number | null;
+}
+
+export type ExportConfig =
+  | { format: "jpeg"; quality: number }
+  | { format: "png" }
+  | { format: "webp" };
+
+export interface ImageConfig {
+  rotation?: RotationConfig | null;
+  crop?: CropConfig | null;
+  resize?: ResizeConfig | null;
+  filters?: FilterConfig | null;
+  export: ExportConfig;
+}
+```
+
+---
+
+## 🖼 Using Photeryx
+
+### 1) Import & Initialize
 
 ```ts
 import Photeryx, { ImageConfig } from "photeryx";
 
-const config: ImageConfig = {
-  rotation: { degrees: 90 },
-  resize: { max_width: 800 },
-  filters: { grayscale: true },
-  export: { format: "png", quality: 90 },
-};
-
-async function processImage() {
-  const photeryx = new Photeryx();
-
-  // Load image from a File
-  const file =
-    document.querySelector<HTMLInputElement>("#fileInput")!.files![0];
-  await photeryx.fromFile(file);
-
-  // Or load image from URL
-  // await photeryx.fromUrl("https://example.com/image.jpg");
-
-  // Export as File
-  const outputFile = await photeryx.exportAsFile(config, "output.png");
-
-  // Export as Blob
-  const blob = await photeryx.exportAsBlob(config);
-
-  // Export as Uint8Array
-  const bytes = await photeryx.exportAsBytes(config);
-
-  // Export as Data URL
-  const dataUrl = await photeryx.exportAsDataUrl(config);
-
-  console.log({ outputFile, blob, bytes, dataUrl });
-}
-
-processImage();
+const ph = new Photeryx();
 ```
 
----
-
-## API
-
-### Loading Images
-
-| Method                                 | Description                             |
-| -------------------------------------- | --------------------------------------- |
-| `fromFile(file: File)`                 | Load image from a File object           |
-| `fromUrl(url: string)`                 | Load image from a remote URL            |
-| `fromArrayBuffer(buffer: ArrayBuffer)` | Load image from an ArrayBuffer directly |
-
-### Exporting Images
-
-| Method                                                | Description                         |
-| ----------------------------------------------------- | ----------------------------------- |
-| `exportAsBytes(config: ImageConfig)`                  | Returns a `Uint8Array` of the image |
-| `exportAsBlob(config: ImageConfig)`                   | Returns a `Blob`                    |
-| `exportAsFile(config: ImageConfig, filename: string)` | Returns a `File`                    |
-| `exportAsDataUrl(config: ImageConfig)`                | Returns a Base64 `data:` URL        |
-
----
-
-## Example Filters
+### 2) Load Images
 
 ```ts
-const filters = {
-  grayscale: true,
-  invert: false,
-  sharpen: { radius: 2, threshold: 1 },
-  brightness: 10,
-  contrast: 15,
-  blur: 1.5,
+const photo1 = await ph.addFromFile(fileInput.files[0]);
+const photo2 = await ph.addFromUrl("https://example.com/image.jpg");
+```
+
+### 3) Configure Processing
+
+```ts
+const config: ImageConfig = {
+  rotation: { degrees: 90 },
+  crop: { x: 0, y: 0, width: 800, height: 600 },
+  resize: { max_width: 1200, max_height: 1200, mode: "fit" },
+  filters: {
+    grayscale: false,
+    sharpen: { radius: 2, threshold: 1 },
+    brightness: 10,
+    contrast: 20,
+    blur: 1,
+  },
+  export: { format: "jpeg", quality: 85 },
 };
 ```
 
+### 4) Export Options
+
+```ts
+// Uint8Array
+const bytes = await photo1.exportAsBytes(config);
+
+// Blob
+const blob = await photo1.exportAsBlob(config);
+
+// File (with filename)
+const file = await photo1.exportAsFile(config, "output.jpeg");
+
+// Base64 string
+const base64 = await photo1.exportAsDataUrl(config);
+```
+
+### 5) Export All Loaded Images
+
+```ts
+const allBlobs = await ph.exportAllAsBlobs(config);
+```
+
+### 6) Memory Management
+
+Photeryx gives you full control over WebAssembly memory:
+
+```ts
+photo1.free(); // Free one image
+ph.freeAll(); // Free all images
+```
+
+**⚠️ After `.free()`, the object can no longer be used.**
+
 ---
 
-## License
+## 🧪 Browser Requirements
+
+| Feature                     | Support  |
+| --------------------------- | -------- |
+| WebAssembly                 | Required |
+| ES6 Modules                 | Required |
+| Offscreen Canvas (optional) | Optional |
+
+---
+
+## 📚 Full API Reference
+
+### Class: `Photeryx`
+
+| Method                        | Description                     |
+| ----------------------------- | ------------------------------- |
+| `addFromFile(file)`           | Load an image from `File`       |
+| `addFromUrl(url)`             | Fetch and load image            |
+| `addFromArrayBuffer(buffer)`  | Load raw image data             |
+| `photos`                      | Returns list of `Photo` objects |
+| `exportAllAsBytes(config)`    | Export all as `Uint8Array[]`    |
+| `exportAllAsBlobs(config)`    | Export all as `Blob[]`          |
+| `exportAllAsDataUrls(config)` | Export all as Base64 strings    |
+| `freeAll()`                   | Free all images in memory       |
+
+### Class: `Photo`
+
+| Method                           | Description               |
+| -------------------------------- | ------------------------- |
+| `exportAsBytes(config)`          | Export as `Uint8Array`    |
+| `exportAsBlob(config)`           | Export as `Blob`          |
+| `exportAsFile(config, filename)` | Export as browser `File`  |
+| `exportAsDataUrl(config)`        | Export as Base64 string   |
+| `free()`                         | Free memory of this image |
+
+---
+
+## 📄 License
 
 Apache-2.0 © [Mehran Taslimi](https://github.com/mehranTaslimi)
 
 ---
 
-## Repository
+## 🔗 Repository
 
 [https://github.com/mehranTaslimi/photeryx](https://github.com/mehranTaslimi/photeryx)
