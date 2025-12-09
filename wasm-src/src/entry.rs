@@ -19,3 +19,14 @@ pub fn export_image(id: u32, config: &JsValue) -> Result<Vec<u8>, JsValue> {
 pub fn free_image(id: u32) -> Result<(), JsValue> {
     ops::free_image(&id).map_err(|err| JsValue::from_str(&format!("{}", err)))
 }
+
+#[wasm_bindgen]
+pub fn find_duplicates(ids: Vec<u32>, threshold: u8) -> Result<JsValue, JsValue> {
+    let duplicates_group = ops::find_duplicates(ids, threshold)
+        .map_err(|err| JsValue::from_str(&format!("{}", err)))?;
+
+    let result = serde_wasm_bindgen::to_value(&duplicates_group)
+        .map_err(|err| JsValue::from_str(&format!("{}", err)))?;
+
+    Ok(result)
+}

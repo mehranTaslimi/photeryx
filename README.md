@@ -48,8 +48,8 @@ This makes it ideal for:
 - Export as:
   - `Uint8Array`
   - `Blob`
-  - `File`
   - Base64 `data:` URL
+- Duplicate detection across loaded images (returns `Photo[][]`)
 - Manual memory control: free images when you’re done
 - Zero network dependency
 
@@ -64,8 +64,6 @@ npm install photeryx
 ---
 
 ## 🧱 TypeScript API Overview
-
-### Image Configuration
 
 ```ts
 export interface RotationConfig {
@@ -100,9 +98,16 @@ export interface FilterConfig {
 }
 
 export type ExportConfig =
-  | { format: "jpeg"; quality: number }
-  | { format: "png" }
-  | { format: "webp" };
+  | {
+      format: "jpeg";
+      quality: number;
+    }
+  | {
+      format: "png";
+    }
+  | {
+      format: "webp";
+    };
 
 export interface ImageConfig {
   rotation?: RotationConfig | null;
@@ -111,6 +116,33 @@ export interface ImageConfig {
   filters?: FilterConfig | null;
   export: ExportConfig;
 }
+
+export declare class Photo {
+  #private;
+  constructor(manager: Photeryx, id: number);
+  get id(): number;
+  exportAsBytes(config: ImageConfig): Promise<Uint8Array>;
+  exportAsBlob(config: ImageConfig): Promise<Blob>;
+  exportAsDataUrl(config: ImageConfig): Promise<string>;
+  free(): void;
+  _unsafeFreeWithoutDetach(): void;
+}
+
+export declare class Photeryx {
+  #private;
+  get photos(): readonly Photo[];
+  addFromFile(file: File): Promise<Photo>;
+  addFromUrl(url: string): Promise<Photo>;
+  addFromArrayBuffer(buffer: ArrayBuffer): Promise<Photo>;
+  exportAllAsBytes(config: ImageConfig): Promise<Uint8Array[]>;
+  exportAllAsBlobs(config: ImageConfig): Promise<Blob[]>;
+  exportAllAsDataUrls(config: ImageConfig): Promise<string[]>;
+  findDuplicates(threshold?: number): Promise<Photo[][]>;
+  freeAll(): void;
+  _detach(photo: Photo): void;
+}
+
+export default Photeryx;
 ```
 
 ---
@@ -120,7 +152,7 @@ export interface ImageConfig {
 ### 1) Import & Initialize
 
 ```ts
-import Photeryx, { ImageConfig } from "photeryx";
+import Photeryx, { type ImageConfig } from "photeryx";
 
 const ph = new Photeryx();
 ```
@@ -130,6 +162,10 @@ const ph = new Photeryx();
 ```ts
 const photo1 = await ph.addFromFile(fileInput.files[0]);
 const photo2 = await ph.addFromUrl("https://example.com/image.jpg");
+
+// Or from ArrayBuffer
+const buffer = await someFetchOrFileApi();
+const photo3 = await ph.addFromArrayBuffer(buffer);
 ```
 
 ### 3) Configure Processing
@@ -150,7 +186,7 @@ const config: ImageConfig = {
 };
 ```
 
-### 4) Export Options
+### 4) Export Options (single image)
 
 ```ts
 // Uint8Array
@@ -159,20 +195,51 @@ const bytes = await photo1.exportAsBytes(config);
 // Blob
 const blob = await photo1.exportAsBlob(config);
 
-// File (with filename)
-const file = await photo1.exportAsFile(config, "output.jpeg");
-
-// Base64 string
+// Base64 string (data URL)
 const base64 = await photo1.exportAsDataUrl(config);
+
+// If you need a File instance:
+const file = new File([blob], "output.jpeg", { type: "image/jpeg" });
 ```
 
 ### 5) Export All Loaded Images
 
 ```ts
+// As Uint8Array[]
+const allBytes = await ph.exportAllAsBytes(config);
+
+// As Blob[]
 const allBlobs = await ph.exportAllAsBlobs(config);
+
+// As data URLs
+const allDataUrls = await ph.exportAllAsDataUrls(config);
 ```
 
-### 6) Memory Management
+### 6) Duplicate Detection
+
+`findDuplicates` compares all loaded photos and returns groups of `Photo` instances that are considered duplicates or very similar.
+
+```ts
+// Optionally pass a threshold (implementation-defined, e.g. 0–100)
+const groups = await ph.findDuplicates(90);
+
+// Example shape:
+// [
+//   [Photo, Photo],       // first duplicate group
+//   [Photo, Photo, Photo] // second duplicate group
+// ]
+
+for (const group of groups) {
+  console.log("Duplicate group:");
+  for (const photo of group) {
+    console.log("  Photo id:", photo.id);
+  }
+}
+```
+
+You can still access the flat list of currently loaded photos through `ph.photos`.
+
+### 7) Memory Management
 
 Photeryx gives you full control over WebAssembly memory:
 
@@ -181,7 +248,7 @@ photo1.free(); // Free one image
 ph.freeAll(); // Free all images
 ```
 
-**⚠️ After `.free()`, the object can no longer be used.**
+**⚠️ After `.free()` or `.freeAll()`, freed objects can no longer be used.**
 
 ---
 
@@ -199,26 +266,27 @@ ph.freeAll(); // Free all images
 
 ### Class: `Photeryx`
 
-| Method                        | Description                     |
-| ----------------------------- | ------------------------------- |
-| `addFromFile(file)`           | Load an image from `File`       |
-| `addFromUrl(url)`             | Fetch and load image            |
-| `addFromArrayBuffer(buffer)`  | Load raw image data             |
-| `photos`                      | Returns list of `Photo` objects |
-| `exportAllAsBytes(config)`    | Export all as `Uint8Array[]`    |
-| `exportAllAsBlobs(config)`    | Export all as `Blob[]`          |
-| `exportAllAsDataUrls(config)` | Export all as Base64 strings    |
-| `freeAll()`                   | Free all images in memory       |
+| Member / Method               | Description                                                  |
+| ----------------------------- | ------------------------------------------------------------ |
+| `photos: readonly Photo[]`    | Readonly list of currently loaded photos                     |
+| `addFromFile(file)`           | Load an image from a `File`                                  |
+| `addFromUrl(url)`             | Fetch and load image from a URL                              |
+| `addFromArrayBuffer(buffer)`  | Load image from raw `ArrayBuffer`                            |
+| `exportAllAsBytes(config)`    | Export all loaded images as `Uint8Array[]`                   |
+| `exportAllAsBlobs(config)`    | Export all loaded images as `Blob[]`                         |
+| `exportAllAsDataUrls(config)` | Export all loaded images as Base64 data URLs (`string[]`)    |
+| `findDuplicates(threshold?)`  | Find duplicate/similar images, returns groups of `Photo[][]` |
+| `freeAll()`                   | Free all images from WebAssembly memory                      |
 
 ### Class: `Photo`
 
-| Method                           | Description               |
-| -------------------------------- | ------------------------- |
-| `exportAsBytes(config)`          | Export as `Uint8Array`    |
-| `exportAsBlob(config)`           | Export as `Blob`          |
-| `exportAsFile(config, filename)` | Export as browser `File`  |
-| `exportAsDataUrl(config)`        | Export as Base64 string   |
-| `free()`                         | Free memory of this image |
+| Member / Method           | Description                        |
+| ------------------------- | ---------------------------------- |
+| `id: number`              | Stable numeric ID for this photo   |
+| `exportAsBytes(config)`   | Export as `Uint8Array`             |
+| `exportAsBlob(config)`    | Export as `Blob`                   |
+| `exportAsDataUrl(config)` | Export as Base64 data URL `string` |
+| `free()`                  | Free memory of this image          |
 
 ---
 

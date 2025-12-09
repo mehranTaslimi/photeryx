@@ -7,16 +7,16 @@ pub fn apply_ops(id: &u32, config: &ImageConfig) -> anyhow::Result<Vec<u8>> {
     let original = DOCUMENTS.get(id).ok_or(anyhow::anyhow!("not found"))?;
     let mut image = original.clone();
 
-    if let Some(resize) = &config.resize {
-        image = resize_op(&image, resize);
-    }
-
     if let Some(rotation) = &config.rotation {
         image = rotate_op(&image, rotation.degrees);
     }
 
     if let Some(crop) = &config.crop {
         image = crop_op(&image, crop);
+    }
+
+    if let Some(resize) = &config.resize {
+        image = resize_op(&image, resize);
     }
 
     if let Some(filter) = &config.filters {

@@ -7,6 +7,7 @@ mod blur;
 mod brightness;
 mod contrast;
 mod crop;
+mod duplicate;
 mod export;
 mod free;
 mod grayscale;
@@ -19,6 +20,7 @@ mod sharpen;
 
 pub mod config;
 
+pub use duplicate::find_duplicates;
 pub use free::free_image;
 pub use load::load_image;
 pub use pipeline::apply_ops;
