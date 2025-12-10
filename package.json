@@ -10,9 +10,9 @@
     "dist"
   ],
   "scripts": {
-    "build:js": "tsc --build",
     "build:wasm": "cd wasm-src && wasm-pack build --release --target bundler --out-dir ../src/wasm",
-    "build": "npm run build:wasm && npm run build:js && mkdir -p dist/wasm && cp src/wasm/*.{wasm,js} dist/wasm",
+    "build:js": "tsc --build",
+    "build": "npm run build:wasm && npm run build:js && mkdir -p dist/wasm && cp src/wasm/*.js dist/wasm && cp src/wasm/*.wasm dist/wasm",
     "prepublishOnly": "npm run build"
   },
   "repository": {
