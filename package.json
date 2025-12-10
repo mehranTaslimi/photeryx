@@ -10,11 +10,9 @@
     "dist"
   ],
   "scripts": {
-    "clean": "rm -rf dist",
     "build:js": "tsc --build",
     "build:wasm": "cd wasm-src && wasm-pack build --release --target bundler --out-dir ../src/wasm",
-    "optimize:wasm": "wasm-opt -Oz -o src/wasm/photeryx_bg.wasm src/wasm/photeryx_bg.wasm && wasm-strip src/wasm/photeryx_bg.wasm",
-    "build": "npm run clean && npm run build:wasm && npm run optimize:wasm && npm run build:js && mkdir -p dist/wasm && cp src/wasm/*.{wasm,js} dist/wasm",
+    "build": "npm run build:wasm && npm run build:js && mkdir -p dist/wasm && cp src/wasm/*.{wasm,js} dist/wasm",
     "prepublishOnly": "npm run build"
   },
   "repository": {
