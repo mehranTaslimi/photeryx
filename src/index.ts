@@ -1,9 +1,4 @@
-import {
-  export_image,
-  load_image,
-  free_image,
-  find_duplicates,
-} from "./wasm/photeryx.js";
+import type { WorkerRequestType, WorkerResponse } from "./photeryx.worker";
 
 export interface RotationConfig {
   degrees: number;
@@ -64,6 +59,12 @@ function getMimeType(format: ExportConfig["format"]): string {
   }
 }
 
+const createWorker = () => {
+  return new Worker(new URL("./photeryx.worker.js", import.meta.url), {
+    type: "module",
+  });
+};
+
 export class Photo {
   #id: number;
   #manager: Photeryx;
@@ -80,7 +81,10 @@ export class Photo {
 
   async exportAsBytes(config: ImageConfig): Promise<Uint8Array> {
     this.#ensureAlive();
-    return export_image(this.#id, config);
+    return this.#manager.call<Uint8Array>("exportImage", {
+      id: this.#id,
+      config,
+    });
   }
 
   async exportAsBlob(config: ImageConfig): Promise<Blob> {
@@ -100,16 +104,16 @@ export class Photo {
     });
   }
 
-  free(): void {
+  async free(): Promise<void> {
     if (this.#freed) return;
-    free_image(this.#id);
+    await this.#manager.call("freeImage", { id: this.#id });
     this.#freed = true;
     this.#manager._detach(this);
   }
 
-  _unsafeFreeWithoutDetach(): void {
+  async _unsafeFreeWithoutDetach(): Promise<void> {
     if (this.#freed) return;
-    free_image(this.#id);
+    await this.#manager.call("freeImage", { id: this.#id });
     this.#freed = true;
   }
 
@@ -122,9 +126,32 @@ export class Photo {
 
 export class Photeryx {
   #photos: Set<Photo> = new Set();
+  #messageId = 0;
+  #worker = createWorker();
 
   get photos(): readonly Photo[] {
     return Array.from(this.#photos);
+  }
+
+  call<T>(type: WorkerRequestType, payload: any): Promise<T> {
+    const id = ++this.#messageId;
+
+    return new Promise((resolve, reject) => {
+      const onMessage = (event: MessageEvent<WorkerResponse>) => {
+        if (event.data.id !== id) return;
+
+        this.#worker.removeEventListener("message", onMessage);
+
+        if (event.data.ok) {
+          resolve(event.data.result as T);
+        } else {
+          reject(new Error(event.data.error));
+        }
+      };
+
+      this.#worker.addEventListener("message", onMessage);
+      this.#worker.postMessage({ id, type, payload });
+    });
   }
 
   async addFromFile(file: File): Promise<Photo> {
@@ -144,9 +171,9 @@ export class Photeryx {
   }
 
   async addFromArrayBuffer(buffer: ArrayBuffer): Promise<Photo> {
-    const bytes = new Uint8Array(buffer);
-    const id = load_image(bytes);
-    const photo = new Photo(this, id);
+    const buf = new Uint8Array(buffer);
+    const result = await this.call<number>("loadImage", { buf });
+    const photo = new Photo(this, result);
     this.#photos.add(photo);
     return photo;
   }
@@ -183,7 +210,11 @@ export class Photeryx {
     );
 
     const ids = new Uint32Array(photos.map((p) => p.id));
-    const groups: number[][] = await find_duplicates(ids, threshold);
+
+    const groups = await this.call<number[][]>("findDuplicates", {
+      ids,
+      threshold,
+    });
 
     if (!groups?.length) return [];
 
